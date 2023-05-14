@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">lab_9</string>
+    <string name="question_ask">Already have an account?</string>
+    <string name="login_title">Login</string>
+    <string name="login_username">Email</string>
+    <string name="login_password">Password</string>
+    <string name="login_forgot">Forgot password?</string>
+    <string name="login_register">New user? Register Now</string>
+    <string name="login_or">OR</string>
+    <string name="recovery_send">Send</string>
+</resources>
