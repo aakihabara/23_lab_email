@@ -1,16 +1,21 @@
 package com.bignerdranch.android.lab_9
 
+import android.os.AsyncTask
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.widget.*
-import androidx.core.widget.doAfterTextChanged
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
+import java.net.HttpURLConnection
+import java.net.URL
 
 private const val TAG = "MainActivity"
 
 private const val correctEmail = "Admin@gmail.com"
-private const val correctPassword = "root"
+private const val correctPassword = "root123"
 
 class MainActivity : AppCompatActivity() {
 
@@ -23,6 +28,53 @@ class MainActivity : AppCompatActivity() {
 
     private var somethingWrong = false
     private var emailCheck = arrayOf("gmail.com", "rambler.ru", "mail.ru", "yandex.ru", "yahoo.com",)
+
+    class CheckDomainTask(private val listener: OnDomainCheckedListener):
+        AsyncTask<String, Void, Boolean>(){
+
+            interface OnDomainCheckedListener {
+                fun onDomainChecked(isValid: Boolean)
+            }
+
+        override fun doInBackground(vararg params: String): Boolean {
+            val domain = params[0]
+            val url = "https://$domain"
+            val client = OkHttpClient()
+            val request = Request.Builder()
+                .url(url)
+                .head()
+                .build()
+
+            try{
+                val response: Response = client.newCall(request).execute()
+                return response.isSuccessful
+            } catch (e: Exception){
+                e.printStackTrace()
+            }
+
+            return false
+        }
+
+        override fun onPostExecute(result: Boolean) {
+            listener.onDomainChecked(result)
+        }
+
+        }
+
+
+    private fun isEmailValid (email: String): Boolean {
+        val domain = email.substringAfter("@")
+        var url = "http://$domain"
+
+        val client = OkHttpClient()
+        val request = Request.Builder()
+            .url(url)
+            .head()
+            .build()
+
+        val response = client.newCall(request).execute()
+        return response.isSuccessful
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,17 +96,19 @@ class MainActivity : AppCompatActivity() {
                 emailError.text = "Email field is empty"
                 somethingWrong = true
             } else {
-                for (end in emailCheck) {
-                    if (email.text.toString().endsWith("@$end")) {
-                        somethingWrong = false
-                        emailError.text = ""
-                        break
+                val task = CheckDomainTask(object: CheckDomainTask.OnDomainCheckedListener{
+                    override fun onDomainChecked(isValid: Boolean) {
+                        if(isValid){
+                            somethingWrong = false
+                            emailError.text = ""
+                        } else {
+                            emailError.text = "Your domain is incorrect"
+                            somethingWrong = true
+                        }
                     }
-                    else{
-                        emailError.text = "Your email address is incorrect"
-                        somethingWrong = true
-                    }
-                }
+                })
+                task.execute(email.text.toString())
+                Thread.sleep(3000)
             }
 
 
@@ -78,7 +132,7 @@ class MainActivity : AppCompatActivity() {
                 if(email.text.toString() == correctEmail && password.text.toString() == correctPassword){
                     Toast.makeText(this, "You are successfully logged in", Toast.LENGTH_SHORT).show()
                 } else {
-                    Toast.makeText(this, "Email or password incorrect", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT).show()
                 }
             }
         }
