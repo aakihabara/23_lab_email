@@ -22,7 +22,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var email: AutoCompleteTextView
     private lateinit var password: EditText
     private lateinit var loginButton: androidx.appcompat.widget.AppCompatButton
-    private lateinit var recoveryText: TextView
     private lateinit var passwordError: TextView
     private lateinit var emailError: TextView
 
@@ -62,20 +61,6 @@ class MainActivity : AppCompatActivity() {
         }
 
 
-    private fun isEmailValid (email: String): Boolean {
-        val domain = email.substringAfter("@")
-        var url = "http://$domain"
-
-        val client = OkHttpClient()
-        val request = Request.Builder()
-            .url(url)
-            .head()
-            .build()
-
-        val response = client.newCall(request).execute()
-        return response.isSuccessful
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -84,7 +69,6 @@ class MainActivity : AppCompatActivity() {
         email = findViewById(R.id.login_text)
         password = findViewById(R.id.password_text)
         loginButton = findViewById(R.id.login_button)
-        recoveryText = findViewById(R.id.login_forgot)
         emailError = findViewById(R.id.email_error)
         passwordError = findViewById(R.id.password_error)
 
@@ -132,14 +116,9 @@ class MainActivity : AppCompatActivity() {
                 if(email.text.toString() == correctEmail && password.text.toString() == correctPassword){
                     Toast.makeText(this, "You are successfully logged in", Toast.LENGTH_SHORT).show()
                 } else {
-                    Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Email or password incorrect", Toast.LENGTH_SHORT).show()
                 }
             }
-        }
-
-        recoveryText.setOnClickListener {
-            val intent = RecoveryActivity.newIntent(this@MainActivity)
-            startActivity(intent)
         }
 
         var adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, emailCheck)
